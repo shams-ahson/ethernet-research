@@ -1,0 +1,46 @@
+
+
+services:
+  client:
+    build: ./client
+    networks:
+      tsn_net:
+        ipv4_address: 172.20.0.10
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - server
+
+  server:
+    build: ./server
+    networks:
+      tsn_net:
+        ipv4_address: 172.20.0.20
+    cap_add:
+      - NET_ADMIN
+
+  wireshark:
+    build: ./wireshark
+    network_mode: host
+    # networks:
+    #   - tsn_net
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    privileged: true
+    volumes:
+      - ./captures:/captures
+    # environment:
+    #   - DISPLAY=${DISPLAY:-host.docker.internal:0}  # GUI (macOS/Linux)
+    depends_on:
+      - client
+      - server
+
+networks:
+  tsn_net:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
